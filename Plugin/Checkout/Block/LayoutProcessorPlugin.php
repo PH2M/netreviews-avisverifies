@@ -53,7 +53,7 @@ class LayoutProcessorPlugin
                 'provider' => 'checkoutProvider',
                 'visible' => true,
                 'checked' => false,
-                'value' => 1,
+                'value' => null,
                 'validation' => [
                     'required-entry' => false
                 ],
@@ -77,7 +77,7 @@ class LayoutProcessorPlugin
                 'provider' => 'checkoutProvider',
                 'visible' => false,
                 'checked' => true,
-                'value' => 1,
+                'value' => null,
                 'validation' => [
                     'required-entry' => false
                 ],

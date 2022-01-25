@@ -4,7 +4,7 @@
     <add id="Netreviews_Avisverifies::top_level"
     	resource="Netreviews_Avisverifies::menu_items"
 
-    	title="Verified Reviews v.3.9.4"
+    	title="Verified Reviews v.3.9.6"
     	module="Netreviews_Avisverifies"
     	sortOrder="9999"
     	/>

@@ -5,6 +5,17 @@ use Magento\Framework\Event\ObserverInterface;
 
 class SaveCustomFieldsInOrder implements \Magento\Framework\Event\ObserverInterface
 {
+    protected $_logger;
+
+    /**
+     * ReviewsAPI constructor.
+     * @param LoggerInterface $logger
+     */
+    public function __construct() {
+        $logger = \Magento\Framework\App\ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class);
+        $this->_logger = $logger;
+    }
+
     public function execute(\Magento\Framework\Event\Observer $observer) {
         try {
             $order = $observer->getEvent()->getOrder();
@@ -22,7 +33,7 @@ class SaveCustomFieldsInOrder implements \Magento\Framework\Event\ObserverInterf
             }
             return $this;
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            $this->_logger->critical($e->getMessage());
         }
     }
 }

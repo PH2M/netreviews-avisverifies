@@ -395,6 +395,8 @@ class NetreviewsManagement implements NetreviewsManagementInterface
             // Advanced configuration
             $reponse['debug']['get_id_or_sku'] = $this->helperData->getPlatformConfig("get_id_or_sku", $idStore);
             $reponse['debug']['Use_parent_sku'] = $this->helperData->getAdvancedConfig('use_parent_sku', $idStore);
+            $reponse['debug']['get_Bundle_from_children'] = $this->helperData->getAdvancedConfig('get_bundle_from_children', $idStore);
+            $reponse['debug']['imit_orders'] = $this->helperData->getAdvancedConfig('limit_orders', $idStore);
             $arrayOrders['list_orders'] = $listOrders;
             $reponse['message'] = $arrayOrders;
             return $reponse;
@@ -466,6 +468,8 @@ class NetreviewsManagement implements NetreviewsManagementInterface
                 'BO_rich_snippets_already_exist' => $this->helperData->getAdvancedConfig("rich_snippets_already_exist", $idStore),
                 'BO_offline_store' => $this->helperData->getAdvancedConfig("offline_store", $idStore),
                 'BO_use_Parent_sku&PLA' => $this->helperData->getAdvancedConfig("use_parent_sku", $idStore),
+                'BO_get_Bundle_from_children' => $this->helperData->getAdvancedConfig("get_bundle_from_children", $idStore),
+                'BO_limit_orders' => $this->helperData->getAdvancedConfig("limit_orders", $idStore),
                 'Map_Configuration' => $siteMapping, // use $websites_mapping/$stores_mapping to get all mapping even if websites/stores are not configured for the plugin.
                 'Liste_des_statuts' => $arrayStatusCollectionSimplified,
                 'Date_Recuperation_Config' => date('Y-m-d H:i:s')

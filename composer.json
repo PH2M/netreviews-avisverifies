@@ -4,7 +4,7 @@
   "name": "netreviews/avisverifies",
   "description": "The Verified-Reviews extension allows you to collect customer reviews about your website and your products ans display this reviews. You can then easily display product and website reviews helping to increase your sales by offering reassurance to your clients of the reliability of your products and the quality of your website.",
   "type": "magento2-module",
-  "version": "3.9.4",
+  "version": "3.9.6",
   "license": [
     "AFL-3.0"
   ],

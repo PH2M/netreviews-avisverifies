@@ -1,11 +1,16 @@
 <?php /* @var $block \Netreviews\Avisverifies\Block\WidgetFloat */ ?>
+<?php
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$escaper = $objectManager->create('Magento\Framework\Escaper');
+?>
+
 <script type="text/x-magento-init">
     {
         "*": {
              "widgetfloat":
                         {
                             "scriptfloatEnable":"<?php echo $block->isEnableScriptfloat; ?>",
-                            "scriptfloat":"<?php echo addslashes($block->scriptfloat); ?>"
+                            "scriptfloat":"<?php echo $escaper->escapeJS($block->scriptfloat); ?>"
                         }
         }
     }

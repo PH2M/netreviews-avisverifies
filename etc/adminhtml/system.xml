@@ -89,7 +89,15 @@
                     <comment>ATTENTION! OPTION ONLY RESERVED FOR VERIFIED-REVIEWS TEAM. Change it only if our team contact you.</comment>
                 </field>
 
-                <field id="limit_orders" type="text" translate="label comment" sortOrder="16" showInDefault="0" showInWebsite="0" showInStore="1">
+                <field id="get_bundle_from_children" translate="label" type="select" sortOrder="17" showInDefault="0" showInWebsite="0" showInStore="1">
+                    <label>Also retrieve reviews on the Bundle Products. </label>
+                    <depends>
+                        <field id="use_parent_sku">0</field>
+                    </depends>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="limit_orders" type="text" translate="label comment" sortOrder="19" showInDefault="0" showInWebsite="0" showInStore="1">
                     <label>Limit export order (between 1 and 100000)</label>
                     <validate>validate-digits validate-digits-range digits-range-1-100000</validate>
                     <comment>Limit number order by export</comment>

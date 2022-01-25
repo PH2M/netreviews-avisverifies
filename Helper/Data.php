@@ -418,6 +418,7 @@ class Data extends AbstractHelper
         $this->idStore = ($this->idStore == null) ? $currentStoreId : $this->idStore;
         $store = $this->storeManager->getStore();
         $useParentSku = $this->getAdvancedConfig('use_parent_sku', $currentStoreId);
+        $getBundleFromChildren = $this->getAdvancedConfig('get_bundle_from_children', $currentStoreId);
         $o_items = ($useParentSku == 1) ? $_order->getAllVisibleItems() : $_order->getAllItems(); // Sólo Padres : Hijos y su(s) Padre(s) correspondiente(s)
         $listProducts = array();
         $i = 0;
@@ -425,14 +426,22 @@ class Data extends AbstractHelper
         foreach ($o_items as $_item) {
             $listProducts[$i]['_itemType'] = $_item->getProductType();
             $listProducts[$i]['get_id_or_sku'] = $idOrSku;
-            $listProducts[$i]['useParentSkuhere'] = $useParentSku; // Get real Id Product in data base for export file.
+            $listProducts[$i]['useParentSkuhere'] = $useParentSku;
+            $idProduct = $_item->getProductId();
+            $o_product = $this->productLoad->create()->load($idProduct); // Get real Id Product in data base for export file.
+
             // Quita los productos Padre si se elige recuperar la información de los Hijos.
             if ($useParentSku != 1) {
-                if ($listProducts[$i]['_itemType'] == 'configurable' || $listProducts[$i]['_itemType'] == 'bundle') {
+                if ($listProducts[$i]['_itemType'] == 'configurable') {
                     continue;
                 }
+                if ($listProducts[$i]['_itemType'] == 'bundle') {
+                    if ($getBundleFromChildren != 1) {
+                        continue;
+                    }
+                }
             }
-            $o_product = $this->productLoad->create()->load($_item->getProductId());
+
             // Image URL
             $listProducts[$i]['sku'] = $o_product->getSku();
             $listProducts[$i]['id_product'] = $o_product->getData($idOrSku); //reference produit pour la plateforme
@@ -442,8 +451,83 @@ class Data extends AbstractHelper
             $listProducts[$i]['url_image'] = $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $o_product->getImage(); // We want to take children image.
             // Get extra data PLA - Google Shopping
             $listProducts[$i] = $this->getExtraProductData($o_product, $listProducts[$i], $currentStoreId);
+
+            // Get Parent Data where order is created from BO.
+            if ($useParentSku == 1) {
+                if ($listProducts[$i]['_itemType'] == 'simple') {
+                    $idParents = $this->getParentProducts($o_product, $idProduct);
+                    if ($idParents) {
+                        foreach ($idParents as $idParent) {
+                            if (is_array($idParent)) {
+                                foreach ($idParent as $_id) {
+                                    $parentProduct = $this->productLoad->create()->load($_id);
+                                    $listProducts[$i] = $this->getExtraProductData($parentProduct, $listProducts[$i], $currentStoreId);
+                                    if ($_item->getProductType() == 'simple') {
+                                        $listProducts[$i] = $this->_overrideParentProductsData(
+                                            $parentProduct,
+                                            $useParentSku,
+                                            $idOrSku,
+                                            $listProducts[$i]
+                                        );
+                                    }
+                                }
+                            } else {
+                                $parentProduct = $this->productLoad->create()->load($idParent);
+                                $listProducts[$i] = $this->getExtraProductData($parentProduct, $listProducts[$i], $currentStoreId);
+                                $listProducts[$i] = $this->_overrideParentProductsData(
+                                    $parentProduct,
+                                    $useParentSku,
+                                    $idOrSku,
+                                    $listProducts[$i]
+                                );
+                            }
+                        } // foreach ($idParents as $idParent)
+                    }
+                }
+            } // if ($useParentSku == 1)
             $i++;
         }
+        return $listProducts;
+    }
+
+    /**
+     * @param $productChild
+     * @param $idChild
+     * @return mixed
+     */
+    public function getParentProducts($productChild, $idChild)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $parentProduct = $objectManager->get('Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable')->getParentIdsByChild($idChild);
+        if (!$parentProduct) {
+            $parentProduct = $objectManager->get('Magento\GroupedProduct\Model\Product\Type\Grouped')->getParentIdsByChild($idChild);
+            if (!$parentProduct) {
+//                $parentProduct = $objectManager->get('Magento\Bundle\Model\Product\Type')->getParentIdsByChild($idChild); // Uncomment for old versions of Magento 2.2.x and 2.3.x
+                $parentProduct = $productChild->getTypeInstance()->getParentIdsByChild($idChild);
+            }
+        }
+        return $parentProduct;
+    }
+
+    /**
+     * REEMPLAZA LA INFORMACIÓN DEL PRODUCTO SIMPLE POR LOS DEL PADRE.
+     * @param $parentProduct
+     * @param $useParentUrl
+     * @param $idOrSku
+     * @param $listProducts
+     * @return array
+     */
+    private function _overrideParentProductsData(
+        $parentProduct,
+        $useParentSku,
+        $idOrSku,
+        $listProducts
+    ) {
+        $listProducts['sku'] = $parentProduct->getSku();
+        $listProducts['id_product'] = $parentProduct->getData($idOrSku);
+        $listProducts['id_product_in_db'] = $parentProduct->getData('entity_id');
+        //$listProducts['name_product'] = $parentProduct->getData('name'); // Uncomment to override childname by the PARENT name.
+        $listProducts['url'] = ($useParentSku == 1) ? $parentProduct->getProductUrl() : $listProducts['url'];
         return $listProducts;
     }
 
@@ -457,6 +541,7 @@ class Data extends AbstractHelper
     public function getAdvancedConfig($code, $storeId = null)
     {
         $storeId = $this->getCurrentIdStoreOrIdWebsiteConfigured($storeId);
+
         return $this->getConfigValue(self::XML_PATH_AVISVERIFIES . self::XML_PATH_AVISVERIFIES_ADVANCED . $code,
             $storeId);
     }
@@ -665,7 +750,7 @@ class Data extends AbstractHelper
         return $configValue;
     }
 
-    /**objectManager
+    /**
      * getAttributeAsText
      * IF SELECTBOX VALUE IS A NUMBER THEN RATHER GET TEXT.
      *
